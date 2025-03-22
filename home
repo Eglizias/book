@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schulbuch-Manager</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .fach {
+            margin: 20px auto;
+            padding: 15px;
+            max-width: 500px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, max-height 0.3s ease-in-out;
+            overflow: hidden;
+        }
+        .fach:hover {
+            transform: scale(1.02);
+        }
+        .buchListe, .archivListe {
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .buch {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            background: #f9f9f9;
+            margin-top: 5px;
+            border-radius: 5px;
+        }
+        .archiv {
+            color: gray;
+        }
+        .toggle {
+            cursor: pointer;
+            color: #007BFF;
+            text-decoration: underline;
+            transition: color 0.3s;
+        }
+        .toggle:hover {
+            color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+        #pdfViewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        #pdfViewer iframe {
+            width: 80vw;
+            height: 90vh;
+            border: none;
+        }
+        #pdfViewer button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: red;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 Schulbuch-Manager</h1>
+    <input type="text" id="fachName" placeholder="Neues Fach eingeben" />
+    <button onclick="addFach()">➕ Fach hinzufügen</button>
+    <div id="fachListe"></div>
+
+    <div id="pdfViewer">
+        <button onclick="closePdfViewer()">✖ Schließen</button>
+        <iframe id="pdfFrame"></iframe>
+    </div>
+
+    <script>
+        function addFach() {
+            let fachName = document.getElementById("fachName").value.trim();
+            if (!fachName) return;
+
+            let fachDiv = document.createElement("div");
+            fachDiv.classList.add("fach");
+            fachDiv.innerHTML = `<h2 onclick="toggleFach(this)">${fachName} ⬇️</h2>
+                <div class="content">
+                    <input type="file" accept="application/pdf" onchange="uploadBuch(this)" />
+                    <h3>📖 Aktuelle Bücher</h3>
+                    <div class="buchListe"></div>
+                    <h3 class="toggle" onclick="toggleArchiv(this)">📂 Archiv anzeigen</h3>
+                    <div class="archivListe hidden"></div>
+                    <button onclick="archivieren(this)">📦 Archivieren</button>
+                </div>`;
+            
+            document.getElementById("fachListe").appendChild(fachDiv);
+            document.getElementById("fachName").value = "";
+        }
+
+        function uploadBuch(input) {
+            let file = input.files[0];
+            if (!file || file.type !== "application/pdf") {
+                alert("Bitte nur PDF-Dateien hochladen!");
+                return;
+            }
+
+            let buchDiv = document.createElement("div");
+            buchDiv.classList.add("buch");
+            buchDiv.innerHTML = `<span>${file.name}</span> <a href="#" onclick="openPdfViewer('${URL.createObjectURL(file)}')">👀 Ansehen</a>`;
+            input.closest(".fach").querySelector(".buchListe").appendChild(buchDiv);
+        }
+
+        function archivieren(button) {
+            let fachDiv = button.closest(".fach");
+            let buchListe = fachDiv.querySelector(".buchListe");
+            let archivListe = fachDiv.querySelector(".archivListe");
+            
+            buchListe.querySelectorAll(".buch").forEach(buch => {
+                buch.classList.add("archiv");
+                archivListe.appendChild(buch);
+            });
+        }
+
+        function toggleArchiv(element) {
+            let archivListe = element.nextElementSibling;
+            archivListe.classList.toggle("hidden");
+        }
+
+        function toggleFach(element) {
+            let content = element.nextElementSibling;
+            content.classList.toggle("hidden");
+        }
+
+        function openPdfViewer(pdfUrl) {
+            document.getElementById("pdfFrame").src = pdfUrl;
+            document.getElementById("pdfViewer").style.display = "flex";
+        }
+
+        function closePdfViewer() {
+            document.getElementById("pdfViewer").style.display = "none";
+            document.getElementById("pdfFrame").src = "";
+        }
+    </script>
+</body>
+</html>
